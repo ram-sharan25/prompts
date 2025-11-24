@@ -1,75 +1,52 @@
-# The One True Holy and Apostolic Prompts
+# Agentic Personas
 
-A collection of "Agentic Personas" designed to turn your LLM into a specialized expert. These prompts are designed to be "installed" into your projects to give you on-demand access to specific capabilities.
+A collection of specialized prompts designed to turn your LLM into an expert for specific tasks. These prompts are self-contained workflows that include activation protocols and behavioral rules.
 
-## 🎭 Available Personas
+## Available Personas
 
-### 🐍 Python Coder
-**Command**: `/activate_coder`
-**Role**: Expert Python Developer & Polyglot.
+### Python Coder
+**Command**: `/python_coder`
+**Role**: Expert Python Developer.
 **Features**:
-- Enforces PEP8, Type Hints, and Google-style docstrings.
-- Manages project context via `PLANNING.md` and `TASK.md`.
-- Follows a strict Plan-Execute-Reflect loop.
+- **Activation Protocol**: Loads persona, checks project context (`PLANNING.md`, `TASK.md`), and initiates pair programming.
+- **Standards**: Enforces PEP8, Type Hints, and Google-style docstrings.
+- **Workflow**: Follows a strict Plan-Execute-Reflect loop.
 
-### 📜 JS/TS Coder
-**Command**: `/activate_js_coder`
+### JS/TS Coder
+**Command**: `/js_coder`
 **Role**: Expert Full-Stack JS/TS Developer.
 **Features**:
-- Adapts to your project's Node version.
-- Enforces ESLint, Prettier, and JSDoc.
-- Conditionally uses Zod and Vitest/Jest based on your project setup.
+- **Activation Protocol**: Loads persona, checks project context, and initiates pair programming.
+- **Adaptive**: Adapts to project Node version.
+- **Enforcement**: Enforces ESLint, Prettier, and JSDoc.
+- **Smart Tooling**: Conditionally uses Zod and Vitest/Jest.
 
-### 🧠 The Thinker
-**Command**: `/activate_thinker`
-**Role**: Personal Trainer for the Mind.
+### The Thinker
+**Command**: `/thinker`
+**Role**: Critical Thinking Partner.
 **Features**:
-- Uses **13 Critical Thinking Tools** (e.g., Devil's Advocate, Perspective Flip).
-- Challenges assumptions and spots blindspots.
-- Does not just echo your thoughts; it pushes you to think deeper.
+- **Activation Protocol**: Loads persona and prepares to challenge assumptions.
+- **Mental Tools**: Uses 13 critical thinking tools (e.g., Devil's Advocate, Perspective Flip).
+- **Goal**: Identifies blindspots and encourages deeper analysis.
 
-### 🎓 The Learner
-**Command**: `/activate_learner`
+### The Learner
+**Command**: `/learner`
 **Role**: Structured Knowledge Guide.
 **Features**:
-- **Strict Interface**: Communicates only via "Cards" (Sheets + Options).
-- **Navigation**: You explore topics by selecting numbered options.
-- **Drill-down**: Go from Basic Info -> Specialized Lists -> Specialized Info.
+- **Activation Protocol**: Loads persona and asks for a learning topic.
+- **Interface**: Communicates via structured "Cards" (Sheets + Options).
+- **Flow**: Guided exploration from basic to specialized information.
 
-## 🚀 Installation
+## Installation
 
-You can install these personas into *any* project on your machine using the global installer.
+Run the installation script to copy the prompts to your global workflows directory. This makes them available in any project.
 
-1.  **One-time Setup**:
-    Run the setup script. It will detect your shell (zsh/bash) and ask for confirmation before adding the alias.
-    ```bash
-    ./scripts/setup_global.sh
-    # Follow the prompts, then:
-    source ~/.zshrc  # or source ~/.bashrc
-    ```
-    *Optional: You can also pass a specific file path: `./scripts/setup_global.sh ~/.my_rc`*
+```bash
+./scripts/add_prompts.sh
+```
 
-2.  **Install in a Project**:
-    Navigate to your target project and run:
-    ```bash
-    cd /path/to/my-project
-    install-agents
-    ```
+## Usage
 
-3.  **What happens?**
-    -   It creates an `.agent` directory in your project.
-    -   It **copies** all prompt files to `.agent/prompts/`.
-    -   It **copies** all workflow files to `.agent/workflows/`.
-    -   It automatically updates the file links in the workflows to point to your project's local copies.
-
-## 🛠️ Usage
-
-Once installed in your project:
-
-1.  Open your project in your AI Editor (e.g., Google Antigravity).
-2.  Type the activation command in the chat:
-    - `/activate_coder`
-    - `/activate_js_coder`
-    - `/activate_thinker`
-    - `/activate_learner`
-3.  The agent will adopt the persona and start the workflow.
+1. Open any project in the editor.
+2. Type the activation command (e.g., `/python_coder`, `/js_coder`).
+3. The agent will adopt the persona and start the defined workflow.
