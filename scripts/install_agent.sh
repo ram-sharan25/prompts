@@ -1,54 +1,80 @@
 #!/bin/bash
 
 # install_agent.sh
-# Usage: ./install_agent.sh <path_to_target_project>
-# Example: ./install_agent.sh ../MyNewProject
+# Usage: install-agents [target_directory]
+# If target_directory is not provided, defaults to current directory.
 
-# Get the directory where this script is located (scripts/)
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-# The project root is one level up
+# 1. Resolve the directory where the *script* lives, to find the source repo.
+#    We use a trick to resolve symlinks if this script is symlinked.
+SOURCE="${BASH_SOURCE[0]}"
+while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symlink
+  DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
+  SOURCE="$(readlink "$SOURCE")"
+  [[ $SOURCE != /* ]] && SOURCE="$DIR/$SOURCE" # if $SOURCE was a relative symlink, we need to resolve it relative to the path where the symlink file was located
+done
+SCRIPT_DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-PROMPTS_DIR="$PROJECT_ROOT/prompts"
-AGENT_DIR="$PROJECT_ROOT/.agent"
 
-TARGET_DIR="$1"
+PROMPTS_SRC="$PROJECT_ROOT/prompts"
+WORKFLOWS_SRC="$PROJECT_ROOT/.agent/workflows"
 
-if [ -z "$TARGET_DIR" ]; then
-    echo "Usage: $0 <target_directory>"
+# 2. Determine Target Directory
+TARGET_DIR="${1:-.}"
+TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
+
+echo "Installing Agent from $PROJECT_ROOT to $TARGET_DIR..."
+
+# 3. Create Directory Structure
+AGENT_DEST="$TARGET_DIR/.agent"
+PROMPTS_DEST="$AGENT_DEST/prompts"
+WORKFLOWS_DEST="$AGENT_DEST/workflows"
+
+mkdir -p "$PROMPTS_DEST"
+mkdir -p "$WORKFLOWS_DEST"
+
+# 4. Copy Prompts
+echo "Copying prompts..."
+if [ -d "$PROMPTS_SRC" ]; then
+    cp "$PROMPTS_SRC"/*.md "$PROMPTS_DEST/"
+else
+    echo "Error: Source prompts directory not found at $PROMPTS_SRC"
     exit 1
 fi
 
-# Resolve absolute path for target
-TARGET_DIR="$(cd "$TARGET_DIR" && pwd)"
-
-echo "Installing Agent configuration from $PROJECT_ROOT to $TARGET_DIR..."
-
-# 1. Link the .agent directory (Workflows)
-if [ -d "$TARGET_DIR/.agent" ]; then
-    echo "Warning: $TARGET_DIR/.agent already exists. Skipping link."
-else
-    echo "Linking .agent directory..."
-    ln -s "$AGENT_DIR" "$TARGET_DIR/.agent"
-fi
-
-# 2. Link all Prompt files from prompts/ directory
-if [ -d "$PROMPTS_DIR" ]; then
-    echo "Linking prompts from $PROMPTS_DIR..."
-    for prompt_file in "$PROMPTS_DIR"/*; do
-        if [ -f "$prompt_file" ]; then
-            filename=$(basename "$prompt_file")
-            target_path="$TARGET_DIR/$filename"
-            
-            if [ -f "$target_path" ]; then
-                echo "Warning: $target_path already exists. Skipping link."
-            else
-                echo "Linking $filename..."
-                ln -s "$prompt_file" "$target_path"
-            fi
-        fi
+# 5. Copy Workflows and Rewrite Paths
+echo "Copying and configuring workflows..."
+if [ -d "$WORKFLOWS_SRC" ]; then
+    for workflow_file in "$WORKFLOWS_SRC"/*.md; do
+        filename=$(basename "$workflow_file")
+        dest_file="$WORKFLOWS_DEST/$filename"
+        
+        # Copy the file
+        cp "$workflow_file" "$dest_file"
+        
+        # Rewrite paths:
+        # We need to replace the absolute path of the source repo with the absolute path of the target repo.
+        # Specifically, we look for links like file:///.../prompts/python_coder.md
+        # and change them to file://$PROMPTS_DEST/python_coder.md
+        
+        # We use sed to replace the file link.
+        # The pattern we are looking for is roughly `(file://).*/prompts/(.*.md)`
+        # And we want to replace it with `\1$PROMPTS_DEST/\2`
+        
+        # Note: We use | as delimiter for sed to avoid issues with slashes in paths.
+        
+        # Logic: Find any file:// link ending in .md, and replace the directory part with our new local directory.
+        # This is a bit aggressive, but for our specific workflow files it should be safe.
+        # A more specific regex: `file://.*/prompts/([a-zA-Z0-9_]+\.md)` -> `file://$PROMPTS_DEST/\1`
+        
+        sed -i '' -E "s|file://.*/prompts/([a-zA-Z0-9_]+\.md)|file://$PROMPTS_DEST/\1|g" "$dest_file"
+        
+        echo "  Installed $filename"
     done
 else
-    echo "Error: Prompts directory not found at $PROMPTS_DIR"
+    echo "Error: Source workflows directory not found at $WORKFLOWS_SRC"
+    exit 1
 fi
 
-echo "Done! You can now use '/activate_coder' (and other installed prompts) in $TARGET_DIR."
+echo "Done! Agent installed in $TARGET_DIR/.agent"
+echo "You can now use the activation commands (e.g., /activate_coder)."
+

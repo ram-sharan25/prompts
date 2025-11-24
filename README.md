@@ -38,21 +38,29 @@ A collection of "Agentic Personas" designed to turn your LLM into a specialized 
 
 ## 🚀 Installation
 
-You can install these personas into *any* project on your machine using the included script.
+You can install these personas into *any* project on your machine using the global installer.
 
-1.  **Navigate to this directory**:
+1.  **One-time Setup**:
+    Run the setup script. It will detect your shell (zsh/bash) and ask for confirmation before adding the alias.
     ```bash
-    cd /path/to/prompts-repo
+    ./scripts/setup_global.sh
+    # Follow the prompts, then:
+    source ~/.zshrc  # or source ~/.bashrc
     ```
+    *Optional: You can also pass a specific file path: `./scripts/setup_global.sh ~/.my_rc`*
 
-2.  **Run the installer** targeting your other project:
+2.  **Install in a Project**:
+    Navigate to your target project and run:
     ```bash
-    ./scripts/install_agent.sh ../my-other-project
+    cd /path/to/my-project
+    install-agents
     ```
 
 3.  **What happens?**
-    - It symlinks the `.agent` directory (workflows) to your target project.
-    - It symlinks all prompt files from `prompts/` to your target project.
+    -   It creates an `.agent` directory in your project.
+    -   It **copies** all prompt files to `.agent/prompts/`.
+    -   It **copies** all workflow files to `.agent/workflows/`.
+    -   It automatically updates the file links in the workflows to point to your project's local copies.
 
 ## 🛠️ Usage
 
